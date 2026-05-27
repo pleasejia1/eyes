@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多功能工具工作台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* ===== 设计系统变量 ===== */
+        :root {
+            --color-primary: #6366f1;
+            --color-primary-light: #818cf8;
+            --color-primary-dark: #4f46e5;
+            --color-secondary: #8b5cf6;
+            --color-accent: #06b6d4;
+            --color-success: #10b981;
+            --color-danger: #ef4444;
+            --color-warning: #f59e0b;
+            
+            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+            --gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            --gradient-danger: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+            
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.15);
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            
+            --transition-fast: 150ms ease;
+            --transition-base: 250ms ease;
+            --transition-slow: 350ms ease;
+            
+            --font-sans: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* ===== 重置与基础 ===== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: linear-gradient(160deg, #e0e7ff 0%, #ede9fe 50%, #fce7f3 100%);
+            min-height: 100vh;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        /* ===== 加载动画 ===== */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(160deg, #e0e7ff 0%, #ede9fe 50%, #fce7f3 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader-wrapper {
+            text-align: center;
+        }
+
+        .loader {
+            width: 56px;
+            height: 56px;
+            border: 3px solid rgba(99, 102, 241, 0.2);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+        }
+
+        .loader-text {
+            margin-top: 16px;
+            color: var(--color-primary);
+            font-weight: 500;
+            font-size: 0.875rem;
+            letter-spacing: 0.05em;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== 主容器 ===== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* ===== 头部区域 ===== */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header-icon {
+            width: 96px;
+            height: 96px;
+            margin: 0 auto 20px;
+            background: var(--gradient-primary);
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-xl), var(--shadow-glow);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .header-icon svg {
+            width: 48px;
+            height: 48px;
+            color: white;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .header-subtitle {
+            color: #64748b;
+            font-size: 1rem;
+        }
+
+        /* ===== 标签页导航 ===== */
+        .tabs-wrapper {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 6px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 24px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+        }
+
+        .tab {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 20px;
+            border: none;
+            background: transparent;
+            border-radius: var(--radius-md);
+            font-family: var(--font-sans);
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: #64748b;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .tab svg {
+            width: 20px;
+            height: 20px;
+            transition: transform var(--transition-base);
+        }
+
+        .tab:hover {
+            color: var(--color-primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .tab:hover svg {
+            transform: scale(1.1);
+        }
+
+        .tab.active {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .tab.active svg {
+            color: white;
+        }
+
+        /* ===== 工具内容区域 ===== */
+        .tool-content {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .tool-panel {
+            display: none;
+            animation: fadeSlideIn 0.4s ease;
+        }
+
+        .tool-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== 输入区域 ===== */
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr auto auto auto;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .input-field {
+            position: relative;
+        }
+
+        .input-field input,
+        .input-field select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            font-family: var(--font-sans);
+            font-size: 0.9375rem;
+            color: #1e293b;
+            background: #f8fafc;
+            transition: all var(--transition-base);
+        }
+
+        .input-field input::placeholder {
+            color: #94a3b8;
+        }
+
+        .input-field input:focus,
+        .input-field select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        /* ===== 按钮样式 ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 24px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-family: var(--font-sans);
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            white-space: nowrap;
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: var(--shadow-md), 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: var(--shadow-lg), 0 8px 20px rgba(99, 102, 241, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-export {
+            background: var(--gradient-success);
+            color: white;
+            box-shadow: var(--shadow-md), 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-export:hover {
+            box-shadow: var(--shadow-lg), 0 8px 20px rgba(16, 185, 129, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            padding: 10px 16px;
+            background: var(--gradient-danger);
+            color: white;
+            font-size: 0.8125rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-danger:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        /* ===== 统计卡片 ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+            transition: all var(--transition-base);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: transparent;
+        }
+
+        .stat-card.primary {
+            background: var(--gradient-primary);
+            border: none;
+        }
+
+        .stat-card.success {
+            background: var(--gradient-success);
+            border: none;
+        }
+
+        .stat-card.danger {
+            background: var(--gradient-danger);
+            border: none;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .stat-card.primary .stat-value,
+        .stat-card.success .stat-value,
+        .stat-card.danger .stat-value {
+            color: white;
+        }
+
+        .stat-label {
+            font-size: 0.8125rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .stat-card.primary .stat-label,
+        .stat-card.success .stat-label,
+        .stat-card.danger .stat-label {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        /* ===== 列表容器 ===== */
+        .list-container {
+            max-height: 380px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .list-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .list-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+
+        .list-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--color-primary), var(--color-secondary));
+            border-radius: 3px;
+        }
+
+        /* ===== 列表项 ===== */
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            transition: all var(--transition-base);
+        }
+
+        .list-item:hover {
+            background: white;
+            border-color: var(--color-primary-light);
+            box-shadow: var(--shadow-md);
+            transform: translateX(4px);
+        }
+
+        .list-item:last-child {
+            margin-bottom: 0;
+        }
+
+        /* ===== 复选框 ===== */
+        .checkbox-wrapper {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: var(--color-primary);
+            border-radius: 6px;
+        }
+
+        .list-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .list-item-text {
+            font-weight: 500;
+            color: #1e293b;
+            word-break: break-word;
+        }
+
+        .list-item-text.completed {
+            text-decoration: line-through;
+            color: #94a3b8;
+        }
+
+        .list-item-meta {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .list-item.income .list-item-text {
+            color: var(--color-success);
+        }
+
+        .list-item.expense .list-item-text {
+            color: var(--color-danger);
+        }
+
+        .list-item-actions {
+            flex-shrink: 0;
+        }
+
+        /* ===== 空状态 ===== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+        }
+
+        .empty-state-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-state-icon svg {
+            width: 40px;
+            height: 40px;
+            color: #94a3b8;
+        }
+
+        .empty-state-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+
+        .empty-state-desc {
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+
+        /* ===== Toast 提示 ===== */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast {
+            padding: 16px 24px;
+            border-radius: var(--radius-md);
+            color: white;
+            font-weight: 500;
+            box-shadow: var(--shadow-xl);
+            animation: toastIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .toast.success {
+            background: var(--gradient-success);
+        }
+
+        .toast.error {
+            background: var(--gradient-danger);
+        }
+
+        @keyframes toastIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ===== 响应式布局 ===== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 24px 16px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .header-icon {
+                width: 72px;
+                height: 72px;
+            }
+
+            .header-icon svg {
+                width: 36px;
+                height: 36px;
+            }
+
+            .tabs-wrapper {
+                padding: 4px;
+            }
+
+            .tab {
+                padding: 12px 12px;
+                font-size: 0.875rem;
+            }
+
+            .tab span {
+                display: none;
+            }
+
+            .tool-content {
+                padding: 20px;
+            }
+
+            .input-section {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .input-field {
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .stat-card {
+                padding: 16px;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .list-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 14px 16px;
+            }
+
+            .list-item-actions {
+                width: 100%;
+            }
+
+            .list-item-actions .btn-danger {
+                width: 100%;
+            }
+
+            .checkbox-wrapper {
+                align-self: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px 12px;
+            }
+
+            .header-icon {
+                width: 64px;
+                height: 64px;
+            }
+
+            .header h1 {
+                font-size: 1.25rem;
+            }
+
+            .tool-content {
+                padding: 16px;
+                border-radius: var(--radius-lg);
+            }
+        }
+
+        /* ===== 减少动画 ===== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ===== 焦点状态 ===== */
+        .btn:focus-visible,
+        .tab:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loader-wrapper">
+            <div class="loader"></div>
+            <div class="loader-text">加载中...</div>
+        </div>
+    </div>
+
+    <!-- Toast 容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="container">
+        <!-- 头部区域 -->
+        <header class="header">
+            <div class="header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+            </div>
+            <h1>多功能工具工作台</h1>
+            <p class="header-subtitle">高效的待办管理与记账工具</p>
+        </header>
+
+        <!-- 标签页导航 -->
+        <div class="tabs-wrapper">
+            <div class="tabs">
+                <button class="tab active" data-tab="todo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 11l3 3L22 4"/>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                    </svg>
+                    <span>待办清单</span>
+                </button>
+                <button class="tab" data-tab="expense">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="4" width="20" height="16" rx="2"/>
+                        <path d="M12 9v6"/>
+                        <path d="M9 12h6"/>
+                    </svg>
+                    <span>记账本</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 工具内容 -->
+        <div class="tool-content">
+            <!-- 待办清单面板 -->
+            <div class="tool-panel active" id="todoPanel">
+                <div class="input-section">
+                    <div class="input-field">
+                        <input type="text" id="todoInput" placeholder="输入新的待办事项..." />
+                    </div>
+                    <button class="btn btn-primary" onclick="addTodo()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        添加
+                    </button>
+                    <button class="btn btn-export" onclick="exportData('todo')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        导出
+                    </button>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card primary">
+                        <div class="stat-value" id="todoTotal">0</div>
+                        <div class="stat-label">总计</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-value" id="todoCompleted">0</div>
+                        <div class="stat-label">已完成</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="todoPending">0</div>
+                        <div class="stat-label">待办</div>
+                    </div>
+                </div>
+                <div class="list-container" id="todoList"></div>
+            </div>
+
+            <!-- 记账本面板 -->
+            <div class="tool-panel" id="expensePanel">
+                <div class="input-section">
+                    <div class="input-field">
+                        <input type="text" id="expenseDesc" placeholder="描述..." />
+                    </div>
+                    <div class="input-field">
+                        <input type="number" id="expenseAmount" placeholder="金额" step="0.01" />
+                    </div>
+                    <div class="input-field">
+                        <select id="expenseType">
+                            <option value="expense">支出</option>
+                            <option value="income">收入</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="addExpense()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        添加
+                    </button>
+                    <button class="btn btn-export" onclick="exportData('expense')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        导出
+                    </button>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card primary">
+                        <div class="stat-value" id="balance">¥0.00</div>
+                        <div class="stat-label">余额</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-value" id="totalIncome">¥0.00</div>
+                        <div class="stat-label">总收入</div>
+                    </div>
+                    <div class="stat-card danger">
+                        <div class="stat-value" id="totalExpense">¥0.00</div>
+                        <div class="stat-label">总支出</div>
+                    </div>
+                </div>
+                <div class="list-container" id="expenseList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ===== 数据存储模块 ===== */
+        const STORAGE_KEYS = {
+            TODO: 'workbench_todo',
+            EXPENSE: 'workbench_expense'
+        };
+
+        function loadData(key) {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveData(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        /* ===== Toast 提示模块 ===== */
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'toastIn 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        /* ===== 标签页切换模块 ===== */
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
+                document.getElementById(`${tabId}Panel`).classList.add('active');
+            });
+        });
+
+        /* ===== 待办清单模块 ===== */
+        let todos = loadData(STORAGE_KEYS.TODO);
+
+        function addTodo() {
+            const input = document.getElementById('todoInput');
+            const text = input.value.trim();
+            
+            if (!text) {
+                showToast('请输入待办事项！', 'error');
+                return;
+            }
+
+            const todo = {
+                id: Date.now(),
+                text: text,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+
+            todos.unshift(todo);
+            saveData(STORAGE_KEYS.TODO, todos);
+            renderTodoList();
+            input.value = '';
+            showToast('待办事项添加成功！');
+        }
+
+        function toggleTodo(id) {
+            todos = todos.map(todo => 
+                todo.id === id ? { ...todo, completed: !todo.completed } : todo
+            );
+            saveData(STORAGE_KEYS.TODO, todos);
+            renderTodoList();
+        }
+
+        function deleteTodo(id) {
+            todos = todos.filter(todo => todo.id !== id);
+            saveData(STORAGE_KEYS.TODO, todos);
+            renderTodoList();
+            showToast('待办事项已删除！');
+        }
+
+        function renderTodoList() {
+            const container = document.getElementById('todoList');
+            
+            if (todos.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 11l3 3L22 4"/>
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                            </svg>
+                        </div>
+                        <div class="empty-state-title">暂无待办事项</div>
+                        <div class="empty-state-desc">添加你的第一个待办，开始高效工作</div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = todos.map(todo => `
+                    <div class="list-item">
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" 
+                                ${todo.completed ? 'checked' : ''} 
+                                onchange="toggleTodo(${todo.id})"
+                                aria-label="${todo.completed ? '标记为未完成' : '标记为已完成'}"
+                            />
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-text ${todo.completed ? 'completed' : ''}">
+                                ${escapeHtml(todo.text)}
+                            </div>
+                            <div class="list-item-meta">
+                                ${formatDate(todo.createdAt)}
+                            </div>
+                        </div>
+                        <div class="list-item-actions">
+                            <button class="btn btn-danger" onclick="deleteTodo(${todo.id})">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                </svg>
+                                删除
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            updateTodoStats();
+        }
+
+        function updateTodoStats() {
+            const total = todos.length;
+            const completed = todos.filter(t => t.completed).length;
+            const pending = total - completed;
+            
+            document.getElementById('todoTotal').textContent = total;
+            document.getElementById('todoCompleted').textContent = completed;
+            document.getElementById('todoPending').textContent = pending;
+        }
+
+        /* ===== 记账本模块 ===== */
+        let expenses = loadData(STORAGE_KEYS.EXPENSE);
+
+        function addExpense() {
+            const descInput = document.getElementById('expenseDesc');
+            const amountInput = document.getElementById('expenseAmount');
+            const typeSelect = document.getElementById('expenseType');
+            
+            const desc = descInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+            const type = typeSelect.value;
+            
+            if (!desc || isNaN(amount) || amount <= 0) {
+                showToast('请输入有效的描述和金额！', 'error');
+                return;
+            }
+
+            const expense = {
+                id: Date.now(),
+                description: desc,
+                amount: amount,
+                type: type,
+                createdAt: new Date().toISOString()
+            };
+
+            expenses.unshift(expense);
+            saveData(STORAGE_KEYS.EXPENSE, expenses);
+            renderExpenseList();
+            
+            descInput.value = '';
+            amountInput.value = '';
+            showToast('记录添加成功！');
+        }
+
+        function deleteExpense(id) {
+            expenses = expenses.filter(exp => exp.id !== id);
+            saveData(STORAGE_KEYS.EXPENSE, expenses);
+            renderExpenseList();
+            showToast('记录已删除！');
+        }
+
+        function renderExpenseList() {
+            const container = document.getElementById('expenseList');
+            
+            if (expenses.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                                <path d="M12 9v6"/>
+                                <path d="M9 12h6"/>
+                            </svg>
+                        </div>
+                        <div class="empty-state-title">暂无记账记录</div>
+                        <div class="empty-state-desc">开始记录你的每一笔收支</div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = expenses.map(exp => `
+                    <div class="list-item ${exp.type}">
+                        <div class="list-item-content">
+                            <div class="list-item-text">
+                                ${exp.type === 'income' ? '+' : '-'}¥${exp.amount.toFixed(2)} - ${escapeHtml(exp.description)}
+                            </div>
+                            <div class="list-item-meta">
+                                ${formatDate(exp.createdAt)}
+                            </div>
+                        </div>
+                        <div class="list-item-actions">
+                            <button class="btn btn-danger" onclick="deleteExpense(${exp.id})">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                </svg>
+                                删除
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            updateExpenseStats();
+        }
+
+        function updateExpenseStats() {
+            const income = expenses.filter(e => e.type === 'income').reduce((sum, e) => sum + e.amount, 0);
+            const expense = expenses.filter(e => e.type === 'expense').reduce((sum, e) => sum + e.amount, 0);
+            const balance = income - expense;
+            
+            document.getElementById('balance').textContent = `¥${balance.toFixed(2)}`;
+            document.getElementById('totalIncome').textContent = `¥${income.toFixed(2)}`;
+            document.getElementById('totalExpense').textContent = `¥${expense.toFixed(2)}`;
+        }
+
+        /* ===== 导出 JSON 模块 ===== */
+        function exportData(type) {
+            let data, filename;
+            
+            if (type === 'todo') {
+                data = todos;
+                filename = `待办清单_${new Date().toISOString().split('T')[0]}.json`;
+            } else {
+                data = expenses;
+                filename = `记账本_${new Date().toISOString().split('T')[0]}.json`;
+            }
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('数据导出成功！');
+        }
+
+        /* ===== 工具函数 ===== */
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return '刚刚';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`;
+            if (diff < 604800000) return `${Math.floor(diff / 86400000)} 天前`;
+            
+            return date.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        /* ===== 键盘事件支持 ===== */
+        document.getElementById('todoInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addTodo();
+        });
+
+        document.getElementById('expenseAmount').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addExpense();
+        });
+
+        /* ===== 页面初始化 ===== */
+        window.addEventListener('load', function() {
+            renderTodoList();
+            renderExpenseList();
+            
+            setTimeout(() => {
+                document.getElementById('loadingScreen').classList.add('hidden');
+            }, 600);
+        });
+    </script>
+</body>
+</html>
