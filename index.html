@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多功能工具工作台</title>
+    <style>
+        /* ===== 全局样式 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* ===== 加载动画 ===== */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== 主容器 ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ===== 头部装饰 ===== */
+        .header-decoration {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-decoration svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 10px;
+        }
+
+        .header-decoration h1 {
+            color: #fff;
+            font-size: 2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* ===== 标签页导航 ===== */
+        .tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .tab.active {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* ===== 工具内容区域 ===== */
+        .tool-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-height: 400px;
+        }
+
+        .tool-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tool-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== 输入区域 ===== */
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .input-section input {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-section input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-section select {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .input-section select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* ===== 按钮样式 ===== */
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-danger {
+            background: #ff6b6b;
+            color: #fff;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+
+        .btn-danger:hover {
+            background: #ff5252;
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: #fff;
+            margin-left: auto;
+        }
+
+        .btn-export:hover {
+            box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4);
+        }
+
+        /* ===== 列表项 ===== */
+        .list-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .list-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .list-item-content {
+            flex: 1;
+        }
+
+        .list-item-text {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .list-item-meta {
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        .list-item.expense .list-item-text {
+            color: #ff6b6b;
+        }
+
+        .list-item.income .list-item-text {
+            color: #38ef7d;
+        }
+
+        /* ===== 复选框样式 ===== */
+        .checkbox-wrapper {
+            position: relative;
+            margin-right: 15px;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .todo-completed {
+            text-decoration: line-through;
+            color: #999 !important;
+        }
+
+        /* ===== 统计卡片 ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card.income {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .stat-card.expense {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* ===== Toast 提示 ===== */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 500;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ===== 响应式布局 ===== */
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header-decoration h1 {
+                font-size: 1.5rem;
+            }
+
+            .header-decoration svg {
+                width: 60px;
+                height: 60px;
+            }
+
+            .input-section {
+                flex-direction: column;
+            }
+
+            .input-section input,
+            .input-section select,
+            .btn {
+                width: 100%;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .list-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .list-item .btn-danger {
+                width: 100%;
+            }
+        }
+
+        /* ===== 滚动条样式 ===== */
+        .list-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .list-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .list-container::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        .list-container::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+
+        /* ===== 空状态 ===== */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Toast 容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="container">
+        <!-- 头部装饰 -->
+        <div class="header-decoration">
+            <!-- AI生成风格的装饰图标 -->
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="45" fill="url(#gradient1)" opacity="0.3"/>
+                <path d="M30 50 L40 60 L70 30" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="30" cy="30" r="8" fill="white" opacity="0.6"/>
+                <circle cx="70" cy="70" r="6" fill="white" opacity="0.4"/>
+                <circle cx="75" cy="35" r="5" fill="white" opacity="0.5"/>
+                <defs>
+                    <linearGradient id="gradient1" x1="0" y1="0" x2="100" y2="100">
+                        <stop offset="0%" style="stop-color:#667eea"/>
+                        <stop offset="100%" style="stop-color:#764ba2"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <h1>✨ 多功能工具工作台</h1>
+        </div>
+
+        <!-- 标签页导航 -->
+        <div class="tabs">
+            <button class="tab active" data-tab="todo">📝 待办清单</button>
+            <button class="tab" data-tab="expense">💰 记账本</button>
+        </div>
+
+        <!-- 工具内容 -->
+        <div class="tool-content">
+            <!-- 待办清单面板 -->
+            <div class="tool-panel active" id="todoPanel">
+                <div class="input-section">
+                    <input type="text" id="todoInput" placeholder="输入待办事项..." />
+                    <button class="btn btn-primary" onclick="addTodo()">添加</button>
+                    <button class="btn btn-export" onclick="exportData('todo')">导出 JSON</button>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="todoTotal">0</div>
+                        <div class="stat-label">总计</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="todoCompleted">0</div>
+                        <div class="stat-label">已完成</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="todoPending">0</div>
+                        <div class="stat-label">待办</div>
+                    </div>
+                </div>
+                <div class="list-container" id="todoList"></div>
+            </div>
+
+            <!-- 记账本面板 -->
+            <div class="tool-panel" id="expensePanel">
+                <div class="input-section">
+                    <input type="text" id="expenseDesc" placeholder="描述..." />
+                    <input type="number" id="expenseAmount" placeholder="金额..." step="0.01" />
+                    <select id="expenseType">
+                        <option value="expense">支出</option>
+                        <option value="income">收入</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="addExpense()">添加</button>
+                    <button class="btn btn-export" onclick="exportData('expense')">导出 JSON</button>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="balance">¥0.00</div>
+                        <div class="stat-label">余额</div>
+                    </div>
+                    <div class="stat-card income">
+                        <div class="stat-value" id="totalIncome">¥0.00</div>
+                        <div class="stat-label">总收入</div>
+                    </div>
+                    <div class="stat-card expense">
+                        <div class="stat-value" id="totalExpense">¥0.00</div>
+                        <div class="stat-label">总支出</div>
+                    </div>
+                </div>
+                <div class="list-container" id="expenseList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== 数据存储 =====
+        const STORAGE_KEYS = {
+            TODO: 'workbench_todo',
+            EXPENSE: 'workbench_expense'
+        };
+
+        // 从localStorage加载数据
+        function loadData(key) {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : [];
+        }
+
+        // 保存数据到localStorage
+        function saveData(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        // ===== Toast 提示 =====
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+
+        // ===== 标签页切换 =====
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // 更新标签页状态
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 切换面板
+                document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
+                document.getElementById(`${tabId}Panel`).classList.add('active');
+            });
+        });
+
+        // ===== 待办清单功能 =====
+        let todos = loadData(STORAGE_KEYS.TODO);
+
+        function addTodo() {
+            const input = document.getElementById('todoInput');
+            const text = input.value.trim();
+            
+            if (!text) {
+                showToast('请输入待办事项！', 'error');
+                return;
+            }
+
+            const todo = {
+                id: Date.now(),
+                text: text,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+
+            todos.unshift(todo);
+            saveData(STORAGE_KEYS.TODO, todos);
+            renderTodoList();
+            input.value = '';
+            showToast('待办事项添加成功！');
+        }
+
+        function toggleTodo(id) {
+            todos = todos.map(todo => 
+                todo.id === id ? { ...todo, completed: !todo.completed } : todo
+            );
+            saveData(STORAGE_KEYS.TODO, todos);
+            renderTodoList();
+        }
+
+        function deleteTodo(id) {
+            todos = todos.filter(todo => todo.id !== id);
+            saveData(STORAGE_KEYS.TODO, todos);
+            renderTodoList();
+            showToast('待办事项已删除！');
+        }
+
+        function renderTodoList() {
+            const container = document.getElementById('todoList');
+            
+            if (todos.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M50 20 L50 60 M30 40 L70 40" stroke="#667eea" stroke-width="4" stroke-linecap="round"/>
+                            <circle cx="50" cy="75" r="5" fill="#667eea"/>
+                        </svg>
+                        <p>暂无待办事项，快添加一个吧！</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = todos.map(todo => `
+                    <div class="list-item">
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" 
+                                ${todo.completed ? 'checked' : ''} 
+                                onchange="toggleTodo(${todo.id})"
+                            />
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-text ${todo.completed ? 'todo-completed' : ''}">
+                                ${escapeHtml(todo.text)}
+                            </div>
+                            <div class="list-item-meta">
+                                ${new Date(todo.createdAt).toLocaleString('zh-CN')}
+                            </div>
+                        </div>
+                        <button class="btn btn-danger" onclick="deleteTodo(${todo.id})">删除</button>
+                    </div>
+                `).join('');
+            }
+
+            // 更新统计
+            const total = todos.length;
+            const completed = todos.filter(t => t.completed).length;
+            const pending = total - completed;
+            
+            document.getElementById('todoTotal').textContent = total;
+            document.getElementById('todoCompleted').textContent = completed;
+            document.getElementById('todoPending').textContent = pending;
+        }
+
+        // ===== 记账本功能 =====
+        let expenses = loadData(STORAGE_KEYS.EXPENSE);
+
+        function addExpense() {
+            const descInput = document.getElementById('expenseDesc');
+            const amountInput = document.getElementById('expenseAmount');
+            const typeSelect = document.getElementById('expenseType');
+            
+            const desc = descInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+            const type = typeSelect.value;
+            
+            if (!desc || isNaN(amount) || amount <= 0) {
+                showToast('请输入有效的描述和金额！', 'error');
+                return;
+            }
+
+            const expense = {
+                id: Date.now(),
+                description: desc,
+                amount: amount,
+                type: type,
+                createdAt: new Date().toISOString()
+            };
+
+            expenses.unshift(expense);
+            saveData(STORAGE_KEYS.EXPENSE, expenses);
+            renderExpenseList();
+            
+            descInput.value = '';
+            amountInput.value = '';
+            showToast('记录添加成功！');
+        }
+
+        function deleteExpense(id) {
+            expenses = expenses.filter(exp => exp.id !== id);
+            saveData(STORAGE_KEYS.EXPENSE, expenses);
+            renderExpenseList();
+            showToast('记录已删除！');
+        }
+
+        function renderExpenseList() {
+            const container = document.getElementById('expenseList');
+            
+            if (expenses.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="20" y="30" width="60" height="40" rx="5" stroke="#667eea" stroke-width="4"/>
+                            <circle cx="40" cy="50" r="4" fill="#667eea"/>
+                            <circle cx="50" cy="50" r="4" fill="#667eea"/>
+                            <circle cx="60" cy="50" r="4" fill="#667eea"/>
+                        </svg>
+                        <p>暂无记录，开始记账吧！</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = expenses.map(exp => `
+                    <div class="list-item ${exp.type}">
+                        <div class="list-item-content">
+                            <div class="list-item-text">
+                                ${exp.type === 'income' ? '+' : '-'}¥${exp.amount.toFixed(2)} - ${escapeHtml(exp.description)}
+                            </div>
+                            <div class="list-item-meta">
+                                ${new Date(exp.createdAt).toLocaleString('zh-CN')}
+                            </div>
+                        </div>
+                        <button class="btn btn-danger" onclick="deleteExpense(${exp.id})">删除</button>
+                    </div>
+                `).join('');
+            }
+
+            // 更新统计
+            const income = expenses.filter(e => e.type === 'income').reduce((sum, e) => sum + e.amount, 0);
+            const expense = expenses.filter(e => e.type === 'expense').reduce((sum, e) => sum + e.amount, 0);
+            const balance = income - expense;
+            
+            document.getElementById('balance').textContent = `¥${balance.toFixed(2)}`;
+            document.getElementById('totalIncome').textContent = `¥${income.toFixed(2)}`;
+            document.getElementById('totalExpense').textContent = `¥${expense.toFixed(2)}`;
+        }
+
+        // ===== 导出 JSON 功能 =====
+        function exportData(type) {
+            let data, filename;
+            
+            if (type === 'todo') {
+                data = todos;
+                filename = `待办清单_${new Date().toISOString().split('T')[0]}.json`;
+            } else {
+                data = expenses;
+                filename = `记账本_${new Date().toISOString().split('T')[0]}.json`;
+            }
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('数据导出成功！');
+        }
+
+        // ===== 工具函数 =====
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ===== 回车键支持 =====
+        document.getElementById('todoInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addTodo();
+        });
+
+        document.getElementById('expenseAmount').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addExpense();
+        });
+
+        // ===== 页面加载完成 =====
+        window.addEventListener('load', function() {
+            renderTodoList();
+            renderExpenseList();
+            
+            setTimeout(() => {
+                document.getElementById('loadingScreen').classList.add('hidden');
+            }, 500);
+        });
+    </script>
+</body>
+</html>
